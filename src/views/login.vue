@@ -1,8 +1,10 @@
 <template>
-  <label>
-    <span>用户名：</span>
-    <input type="text" placeholder="请输入用户名">
-  </label>
+  <div>
+    <label>
+      <span>用户名：</span>
+      <input type="text" placeholder="请输入用户名">
+    </label>
+  </div>
 </template>
 
 <script lang="ts">
