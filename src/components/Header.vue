@@ -2,9 +2,9 @@
   <header class="header">
     <div class="wrap">
       <nav class="nav">
-        <router-link to="/home">Home</router-link>
+        <router-link class="item" to="/home" exact>Home</router-link>
         <span class="divider"></span>
-        <router-link to="/list">List</router-link>
+        <router-link class="item" to="/list">List</router-link>
       </nav>
 
       <router-link
@@ -50,6 +50,9 @@ export default defineComponent({
       justify-content flex-start
       align-items center
       flex 1
+      .item
+        &.cur
+          text-decoration underline
       .divider
         display flex
         width 1px

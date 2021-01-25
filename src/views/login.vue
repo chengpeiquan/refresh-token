@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="login">
     <label>
       <span>用户名：</span>
       <input type="text" placeholder="请输入用户名">
@@ -19,6 +19,6 @@ export default defineComponent({
 })
 </script>
 
-<style scoped>
+<style lang="stylus" scoped>
 
 </style>
