@@ -8,7 +8,7 @@
       </a-form-item>
       
       <a-form-item label="密码">
-        <a-input v-model:value="form.password">
+        <a-input type="password" v-model:value="form.password">
           <template #prefix><LockOutlined style="color:rgba(0,0,0,.25)"/></template>
         </a-input>
       </a-form-item>
@@ -44,8 +44,8 @@ export default defineComponent({
     const labelCol: Col = { span: 4 };
     const wrapperCol: Col = { span: 14 };
     const form: Form = reactive({
-      name: '',
-      password: ''
+      name: 'admin',
+      password: '123456'
     })
 
     return {
