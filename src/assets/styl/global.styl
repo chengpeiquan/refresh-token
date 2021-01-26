@@ -1,9 +1,5 @@
 @import "config"
 
-/** 
- * 取消一些浏览器默认样式
- */
-
 html input, html select, html textarea
   outline none
   border 0
@@ -15,6 +11,11 @@ body, ul, li, p, h2, figure
 ul, ol, li
   list-style none
 
+html, body
+  width 100%
+  height 100%
+  overflow hidden
+
 a
   color $color-blue
   text-decoration none
@@ -22,45 +23,12 @@ a
     color lighten($color-blue, 20%)
     text-decoration underline
 
-/** 
- * 全局字体设置
- */
 *
   font-family "PingFangSC-Regular", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, HelveticaNeue, Helvetica, "BBAlpha Sans", sans-serif
 
 
-/** 
- * 全局输入框样式美化
- */
-
-// 占位符美化
-::-moz-placeholder
-  color $color-dark-gray
-  font-size: 14px
-::-webkit-input-placeholder , ::-webkit-textarea-placeholder
-  color $color-dark-gray
-  font-size: 14px
-:-ms-input-placeholder , :-ms-textarea-placeholder
-  color $color-dark-gray
-  font-size: 14px
-
-// 处理input[type="number"]的上下箭头
-input::-webkit-outer-spin-button
-input::-webkit-inner-spin-button
-  -webkit-appearance none
-input[type="number"]
-  -moz-appearance textfield
-
-// 滚动条美化
-::-webkit-scrollbar
-  width 5px
-  height 5px
-  margin-left $margin
-::-webkit-scrollbar-thumb
-  background-color darken($color-border, 20%)
-  border-radius ($radius /4)
-  &:hover
-    background-color darken($color-border, 40%)
-::-webkit-scrollbar-track
-  background-color lighten($color-border, 60%)
-  border-radius ($radius /4)
+#app
+  display flex
+  flex-direction column
+  width 100%
+  height 100%

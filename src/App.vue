@@ -1,6 +1,8 @@
 <template>
   <Header />
-  <router-view />
+  <main class="main">
+    <router-view />
+  </main>
 </template>
 
 <script lang="ts">
@@ -20,4 +22,8 @@ export default defineComponent({
 </script>
 
 <style lang="stylus" scoped>
+.main
+  position relative
+  display flex
+  flex 1
 </style>
