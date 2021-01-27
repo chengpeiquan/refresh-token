@@ -1,20 +1,35 @@
 <template>
   <div class="login">
-    <a-form :model="form" :label-col="{ span: 4 }" :wrapper-col="{ span: 18 }">
+    <a-form :model="form" :label-col="labelCol" :wrapper-col="wrapperCol">
       <a-form-item label="用户名">
-        <a-input v-model:value="form.name">
-          <template #prefix><UserOutlined style="color:rgba(0,0,0,.25)"/></template>
+        <a-input
+          v-model:value="form.name"
+          readonly
+        >
+          <template #prefix>
+            <UserOutlined />
+          </template>
         </a-input>
       </a-form-item>
       
       <a-form-item label="密码">
-        <a-input type="password" v-model:value="form.password">
-          <template #prefix><LockOutlined style="color:rgba(0,0,0,.25)"/></template>
+        <a-input
+          type="password"
+          v-model:value="form.password"
+          readonly
+        >
+          <template #prefix>
+            <LockOutlined />
+          </template>
         </a-input>
       </a-form-item>
       
-      <a-form-item :wrapper-col="{ span: 18, offset: 4 }">
-        <a-button type="primary">
+      <a-form-item :wrapper-col="wrapperColOffset" >
+        <a-button
+          :loading="isSending"
+          type="primary"
+          @click="login"
+        >
           点击登录
         </a-button>
       </a-form-item>
@@ -23,11 +38,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { UserOutlined, LockOutlined } from '@ant-design/icons-vue'
+import ls from '@libs/localStorage'
+import setLoginInfoToLocal from '@libs/setLoginInfoToLocal'
+import message from '@libs/message'
+import axios from '@libs/axios'
+import bus from '@libs/bus'
 
 interface Col {
-  span: number
+  span: number,
+  offset?: number
 }
 
 interface Form {
@@ -41,17 +63,75 @@ export default defineComponent({
     LockOutlined,
   },
   setup () {
+    const router = useRouter();
     const labelCol: Col = { span: 4 };
-    const wrapperCol: Col = { span: 14 };
+    const wrapperCol: Col = { span: 18 };
+    const wrapperColOffset: Col = { span: 18, offset: 4 };
     const form: Form = reactive({
       name: 'admin',
       password: '123456'
+    });
+    const isSending = ref<boolean>(false);
+
+    const login = (): void | boolean => {
+      if ( isSending.value ) {
+        return false;
+      }
+
+      if ( !form.name ) {
+        message.warning('用户名不能为空');
+        return false;
+      }
+
+      isSending.value = true;
+
+      axios({
+        method: 'post',
+        url: '/login',
+        data: {
+          name: form.name,
+          password: form.password
+        }
+      }).then( (data: any) => {
+        const CODE: number = data.code;
+        const MSG: string = data.msg;
+        if ( CODE !== 0 ) {
+          message.error(MSG);
+          isSending.value = false;
+          return false;
+        }
+
+        const DATA: any = data.data;
+        console.log('登录信息', DATA);
+        setLoginInfoToLocal(DATA);
+
+        message.success('登录成功！');
+        isSending.value = false;
+        router.push({
+          name: 'home'
+        });
+        
+      }).catch( (msg: string) => {
+        message.error(msg);
+        isSending.value = false;
+      })
+    }
+
+    onMounted( () => {
+      ls.clear();
+      bus.emit('updateUserName', '');
     })
 
     return {
+      // 数据
       labelCol,
       wrapperCol,
-      form
+      wrapperColOffset,
+      form,
+      isSending,
+
+      // 方法
+      login
     }
   }
 })
@@ -64,39 +144,7 @@ export default defineComponent({
   display flex
   flex-direction column
   width 350px
-  margin auto
-  .label
-    display flex
-    justify-content space-between
-    align-items center
-    margin-bottom $margin
-    &:last-child
-      margin-bottom 0
-    .text
-      display flex
-      flex-shrink 0
-      justify-content flex-end
-      width 80px
-      font-weight bold
-      margin-right $margin
-    .input
-      display flex
-      flex 1
-      font-size 14px
-      padding ($margin /2) $margin
-      border 1px solid $color-border
-      border-radius $radius
-    .btn-login
-      display flex
-      align-items center
-      justify-content center
-      width 80px
-      height 30px
-      font-size 14px
-      color $color-white
-      background-color $color-blue
-      border-radius ($radius /2)
-      cursor pointer
-      &:hover
-        background-color lighten($color-blue, 20%)
+  margin ($margin *2) auto
+  >>> .ant-input-prefix
+    color $color-desc
 </style>

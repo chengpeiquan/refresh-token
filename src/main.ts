@@ -6,7 +6,7 @@ import router from './router'
 /** 
  * 引入插件
  */
-import { Button, Form, Input } from 'ant-design-vue'
+import { Button, Form, Input, Divider } from 'ant-design-vue'
 import 'ant-design-vue/dist/antd.css'
 
 
@@ -31,4 +31,5 @@ createApp(App)
   .use(Button)
   .use(Form)
   .use(Input)
+  .use(Divider)
   .mount('#app')
