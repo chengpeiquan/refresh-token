@@ -1,4 +1,5 @@
 import axios from 'axios'
+import config from '@libs/axios/config'
 import ls from '@libs/localStorage'
 import router from '@/router'
 
@@ -6,45 +7,28 @@ import router from '@/router'
  * 创建一个独立的axios实例
  * 把常用的公共请求配置放这里添加
  */
-const instance: any = axios.create({
-  // 接口的公共前缀
-  baseURL: '/api',
-
-  // 公共请求头
-  headers: {
-    'Content-Type': 'application/json; charset=UTF-8',
-    Authorization: 'Basic THIS_IS_A_COMMON_TOKEN'
-  },
-
-  // 默认的响应方式
-  responseType: 'json',
-
-  // 超时时间
-  timeout: 3000, 
-
-  // 跨域的情况下不需要带上cookie
-  withCredentials: false,
-
-  // 调整响应范围，范围内的可以进入then流程，否则会走catch
-  validateStatus: (status: number) => {
-    return status >= 200 && status <= 600;
-  }
-
-});
-
+const instance = axios.create(config);
 
 /** 
  * 请求拦截
- * 添加token
+ * 要判断开发环境决定是否添加代理path
  */
 instance.interceptors.request.use(
 
   // 正常拦截
-  (config: any): any => {
-    console.log('axios/instance', config);
+  (config: any): any =>{
+
+    /** 
+     * Token的有效期
+     * 因为是Mock接口，没法判断token有效期，所以要带上时间戳去判断一下
+     */
+    const LOCAL_TOKEN_EXP: number = ls.get('token_expired_timestamp') || 0;
+    if ( LOCAL_TOKEN_EXP ) {
+      config.headers['expiredTime'] = LOCAL_TOKEN_EXP;
+    }
     
     /** 
-     * 添加token
+     * 定义token
      * 除非免token的接口，否则登录后都要返回带身份token的请求头
      */
     const LOCAL_TOKEN: string = ls.get('token') || '';
@@ -62,7 +46,6 @@ instance.interceptors.request.use(
   (err: any): any => Promise.reject(err)
 
 );
-
 
 /** 
  * 返回拦截

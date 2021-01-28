@@ -86,7 +86,7 @@ export default defineComponent({
     /** 
      * 获取ISO日期
      */
-    const getISODate = (timestramp?: number): string => {
+    const getISODate = (timestramp: number): string => {
       // 时差
       const JET_LAG: number = 8 * 60 * 60 * 1000;
 
@@ -107,9 +107,10 @@ export default defineComponent({
      */
     const getLoginDate = (): void => {
       const NOW: number = Date.now();
-      loginTimeInfo.now = getISODate();
+      loginTimeInfo.now = getISODate(NOW);
 
-      const EXP: number = ls.get('token_expired_timestamp') || 0;
+      const LS_EXP: string = ls.get('token_expired_timestamp');
+      const EXP: number = Number(LS_EXP) || 0;
       if ( !EXP ) {
         clearInterval(interVal);
       }

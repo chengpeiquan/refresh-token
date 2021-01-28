@@ -17,7 +17,6 @@ axios.interceptors.request.use(
 
   // 正常拦截
   async (config: any): Promise<any> =>{
-    console.log('axios/index', config);    
 
     /** 
      * 刷新token
@@ -26,7 +25,7 @@ axios.interceptors.request.use(
     const HAS_LOCAL_TOKEN_EXP: boolean = ls.get('token_expired_timestamp') ? true : false;
 
     // 获取旧token过期时间戳
-    const OLD_TOKEN_EXP: number = ls.get('token_expired_timestamp') || 0;    
+    const OLD_TOKEN_EXP: number = ls.get('token_expired_timestamp') || 0;
 
     // 获取当前时间戳
     const NOW_TIMESTAMP: number = Date.now();
@@ -41,19 +40,20 @@ axios.interceptors.request.use(
       HAS_LOCAL_TOKEN_EXP
       &&
       TIME_DIFF <= 0
-    ) {      
+    ) {
 
       /** 
        * 如果没有在刷新，则允许刷新
        */
-      if ( !isRefreshing ) {    
+      if ( !isRefreshing ) {
+    
         // 打开开关
         isRefreshing = true;
 
-        console.log('需要刷新', isRefreshing);
         // 获取新的token
         const NEW_TOKEN: string = await refreshToken();
         console.log('NEW_TOKEN', NEW_TOKEN);
+        
 
         // 关闭开关，允许下次继续刷新
         isRefreshing = false;

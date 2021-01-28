@@ -2,10 +2,7 @@
   <div class="login">
     <a-form :model="form" :label-col="labelCol" :wrapper-col="wrapperCol">
       <a-form-item label="用户名">
-        <a-input
-          v-model:value="form.name"
-          readonly
-        >
+        <a-input v-model:value="form.name" >
           <template #prefix>
             <UserOutlined />
           </template>
@@ -13,11 +10,7 @@
       </a-form-item>
       
       <a-form-item label="密码">
-        <a-input
-          type="password"
-          v-model:value="form.password"
-          readonly
-        >
+        <a-input type="password" v-model:value="form.password" >
           <template #prefix>
             <LockOutlined />
           </template>
@@ -101,14 +94,16 @@ export default defineComponent({
           return false;
         }
 
+        // 把登录信息存起来
         const DATA: any = data.data;
-        console.log('登录信息', DATA);
         setLoginInfoToLocal(DATA);
 
-        message.success('登录成功！');
-        isSending.value = false;
-        router.push({
-          name: 'home'
+        // 返回首页
+        message.success(MSG, 1, () => {
+          isSending.value = false;
+          router.push({
+            name: 'home'
+          });
         });
         
       }).catch( (msg: string) => {

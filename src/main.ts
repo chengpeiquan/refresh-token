@@ -20,7 +20,7 @@ import '@styl/global.styl'
 /** 
  * 引入本地库
  */
-import '@libs/mock'
+// import '@libs/mock'
 
 
 /** 

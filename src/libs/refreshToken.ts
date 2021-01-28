@@ -1,7 +1,13 @@
-import axios from '@libs/axios/instance'
-// import axios from 'axios'
+import axios from 'axios'
+import config from '@libs/axios/config'
 import ls from '@libs/localStorage'
 import setLoginInfoToLocal from '@libs/setLoginInfoToLocal'
+
+/** 
+ * 创建一个独立的axios实例
+ * 把常用的公共请求配置放这里添加
+ */
+const instance = axios.create(config);
 
 /** 
  * 刷新token
@@ -12,48 +18,34 @@ const refreshToken = (): Promise<any> => {
     const REFRESH_TOKEN: string = ls.get('refresh_token') || '';
     console.log('REFRESH_TOKEN', REFRESH_TOKEN);
 
+    
+    /** 
+     * Token的有效期
+     * 因为是Mock接口，没法判断token有效期，所以要带上时间戳去判断一下
+     */
+    const LOCAL_TOKEN_EXP: number = ls.get('token_expired_timestamp') || 0;
+
     // 请求
-    // axios({
-    //   method: 'post',
-    //   url: '/login',
-    //   data: {
-    //     refreshToken: REFRESH_TOKEN
-    //   }
-    // }).then( (data: any) => {
-    //   console.log(data);
-
-    //   // 存储token信息
-    //   setLoginInfoToLocal(data);
-
-    //   // 返回新的token，通知那边搞定了
-    //   const NEW_TOKEN: string = ls.get('token');
-    //   resolve(NEW_TOKEN);
-
-    // }).catch( (err: any) => {
-    //   console.log(err);
-      
-    //   // 刷新失败，返回一个空token
-    //   resolve('');
-    // });
-
-    axios({
+    instance({
       method: 'post',
-      url: '/aaaaa',
+      url: '/refreshToken',
+      headers: {
+        expiredTime: LOCAL_TOKEN_EXP
+      },
       data: {
         refreshToken: REFRESH_TOKEN
       }
-    }).then( (data: any) => {
-      console.log(data);
-
+    }).then( (res: any) => {
+      
       // 存储token信息
-      setLoginInfoToLocal(data);
+      const DATA: any = res.data.data;
+      setLoginInfoToLocal(DATA);
 
       // 返回新的token，通知那边搞定了
-      const NEW_TOKEN: string = ls.get('token');
+      const NEW_TOKEN: string = `${DATA.tokenType} ${DATA.accessToken}`;
       resolve(NEW_TOKEN);
 
     }).catch( (err: any) => {
-      console.log(err);
       
       // 刷新失败，返回一个空token
       resolve('');
