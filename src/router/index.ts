@@ -13,7 +13,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/list',
     name: 'list',
-    component: () => import(/* webpackChunkName: "list" */ '../views/list.vue')
+    component: () => import(/* webpackChunkName: "list" */ '../views/home.vue')
   },
   {
     path: '/login',
@@ -24,6 +24,8 @@ const routes: Array<RouteRecordRaw> = [
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
+  linkActiveClass: 'cur',
+  linkExactActiveClass: 'cur',
   routes
 })
 
