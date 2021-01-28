@@ -14,10 +14,10 @@ const instance = axios.create(config);
  */
 const refreshToken = (): Promise<any> => {
   return new Promise( (resolve: any): any => {
-    // 获取用来刷新token的凭证
+    /** 
+     * 获取用来刷新token的凭证
+     */
     const REFRESH_TOKEN: string = ls.get('refresh_token') || '';
-    console.log('REFRESH_TOKEN', REFRESH_TOKEN);
-
     
     /** 
      * Token的有效期
@@ -25,7 +25,9 @@ const refreshToken = (): Promise<any> => {
      */
     const LOCAL_TOKEN_EXP: number = ls.get('token_expired_timestamp') || 0;
 
-    // 请求
+    /** 
+     * 请求刷新
+     */
     instance({
       method: 'post',
       url: '/refreshToken',

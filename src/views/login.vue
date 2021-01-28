@@ -98,6 +98,10 @@ export default defineComponent({
         const DATA: any = data.data;
         setLoginInfoToLocal(DATA);
 
+        // 更新导航栏用户名
+        const USER_NAME: string = DATA.userInfo.name || '';
+        bus.emit('updateUserName', USER_NAME);
+
         // 返回首页
         message.success(MSG, 1, () => {
           isSending.value = false;

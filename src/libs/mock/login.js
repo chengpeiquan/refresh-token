@@ -13,7 +13,11 @@
         tokenType: 'Bearer',
         accessToken: '@guid',
         refreshToken: '@guid',
-        expiresTime: () => Date.now() + 20 * 1000
+        expiresTime: () => Date.now() + 20 * 1000,
+        userInfo: {
+          id: 1,
+          name: 'admin'
+        }
       },
       msg: '登录成功'
     })

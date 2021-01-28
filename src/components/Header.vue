@@ -89,7 +89,6 @@ export default defineComponent({
     display flex
     width 100%
     max-width $width-container
-    height @height
     justify-content space-between
     align-items center
     padding 0 $margin
@@ -99,13 +98,12 @@ export default defineComponent({
       justify-content flex-start
       align-items center
       flex 1
-      height 100%
       .item
         display flex
-        align-items center
-        height 100%
-        padding 0 $margin
+        font-size 14px
         &.cur
+          font-size 16px
+          font-weight bold
           text-decoration underline
       .divider
         display flex
