@@ -4,11 +4,12 @@ import setLoginInfoToLocal from '@libs/setLoginInfoToLocal'
 
 /** 
  * 刷新token
+ * 成功返回新的token，失败返回空字符串
  */
 const refreshToken = (): Promise<any> => {
-  return new Promise( (resolve: any): any => {
+  return new Promise( resolve => {
     
-    // 获取刷新凭证
+    // 获取本地记录的刷新凭证
     const REFRESH_TOKEN: string = ls.get('refresh_token') || '';
 
     // 请求刷新
@@ -28,9 +29,7 @@ const refreshToken = (): Promise<any> => {
       const NEW_TOKEN: string = `${DATA.tokenType} ${DATA.accessToken}`;
       resolve(NEW_TOKEN);
 
-    }).catch( (err: any) => {
-      
-      // 刷新失败，返回一个空token
+    }).catch( (msg: string) => {
       resolve('');
     });
     

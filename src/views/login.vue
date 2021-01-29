@@ -148,7 +148,7 @@ export default defineComponent({
   display flex
   flex-direction column
   width 350px
-  margin ($margin *2) auto
+  margin auto
   >>> .ant-input-prefix
     color $color-desc
 </style>

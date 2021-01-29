@@ -1,11 +1,9 @@
 /** 
  * axios的公共配置
  */
-
 const config: any = {
 
   // 接口路径
-  // baseURL: 'https://www.fastmock.site/mock/1c85c0d436ae044cf22849549ef471b8/api',
   baseURL: 'http://127.0.0.1:12321/api',
 
   // 公共请求头

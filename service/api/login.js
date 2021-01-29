@@ -8,7 +8,7 @@ module.exports = (app) => {
 
     const body = req.body;
     if ( body.name !== 'admin' || body.password !== '123456' ) {
-      res.send({
+      res.status(403).send({
         code: 1,
         data: null,
         msg: '用户名或密码错误'
@@ -22,7 +22,7 @@ module.exports = (app) => {
         tokenType: 'Bearer',
         accessToken: Mock.Random.guid(),
         refreshToken: Mock.Random.guid(),
-        expiresTime: Date.now() + 5 * 1000,
+        expiresTime: Date.now() + 10 * 1000,
         userInfo: {
           id: 1,
           name: 'admin'

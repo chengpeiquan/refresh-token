@@ -2,11 +2,11 @@ import axios from '@libs/axios/instance'
 import ls from '@libs/localStorage'
 import refreshToken from '@libs/refreshToken'
 
-/** 
- * 防止重复刷新的状态开关
- */
+// 防止重复刷新的状态开关
 let isRefreshing: boolean = false;
-let requests: any = [];
+
+// 被拦截的请求列表
+let requests: any[] = [];
 
 /** 
  * 请求拦截
@@ -15,8 +15,7 @@ let requests: any = [];
  */
 axios.interceptors.request.use(
 
-  // 正常拦截
-  async (config: any): Promise<any> =>{
+  async config => {
 
     /** 
      * 刷新token
@@ -36,7 +35,7 @@ axios.interceptors.request.use(
     const TIME_DIFF: number = OLD_TOKEN_EXP - NOW_TIMESTAMP;
 
     // 获取接口url
-    const API_URL: string = config.url;
+    const API_URL: string = config.url || '';
 
     // 有本地token记录、有过期时间记录，并且时间已经过期，三者缺一不可
     if (

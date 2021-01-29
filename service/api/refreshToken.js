@@ -9,7 +9,7 @@ module.exports = (app) => {
     const body = req.body;
     const refreshToken = body.refreshToken || '';
     if ( !refreshToken ) {
-      res.send({
+      res.status(403).send({
         code: 1,
         data: null,
         msg: '缺少刷新凭证'
@@ -19,7 +19,7 @@ module.exports = (app) => {
 
     const isAllowRefresh = Mock.Random.boolean();
     if ( !isAllowRefresh ) {
-      res.send({
+      res.status(401).send({
         code: 1,
         data: null,
         msg: '用户凭证已过期'
@@ -33,7 +33,7 @@ module.exports = (app) => {
         tokenType: 'Bearer',
         accessToken: Mock.Random.guid(),
         refreshToken: Mock.Random.guid(),
-        expiresTime: Date.now() + 5 * 1000
+        expiresTime: Date.now() + 10 * 1000
       },
       msg: '续期成功'
     });
