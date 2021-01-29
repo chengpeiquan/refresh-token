@@ -76,6 +76,11 @@ export default defineComponent({
         return false;
       }
 
+      if ( !form.password ) {
+        message.warning('密码不能为空');
+        return false;
+      }
+
       isSending.value = true;
 
       axios({

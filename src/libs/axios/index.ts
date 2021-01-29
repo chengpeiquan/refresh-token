@@ -3,7 +3,7 @@ import ls from '@libs/localStorage'
 import refreshToken from '@libs/refreshToken'
 
 /** 
- * 防止重复刷新的开关
+ * 防止重复刷新的状态开关
  */
 let isRefreshing: boolean = false;
 let requests: any = [];
@@ -21,6 +21,8 @@ axios.interceptors.request.use(
     /** 
      * 刷新token
      */
+
+    // 判断本地是否有记录
     const HAS_LOCAL_TOKEN: boolean = ls.get('token') ? true : false;
     const HAS_LOCAL_TOKEN_EXP: boolean = ls.get('token_expired_timestamp') ? true : false;
 
@@ -33,8 +35,13 @@ axios.interceptors.request.use(
     // 计算有效的剩余时间差
     const TIME_DIFF: number = OLD_TOKEN_EXP - NOW_TIMESTAMP;
 
-    // 请求时认为需要刷新、有本地token记录、有过期时间记录，并且允许刷新，四者缺一不可
+    // 获取接口url
+    const API_URL: string = config.url;
+
+    // 有本地token记录、有过期时间记录，并且时间已经过期，三者缺一不可
     if (
+      API_URL !== '/refreshToken'
+      &&
       HAS_LOCAL_TOKEN
       &&
       HAS_LOCAL_TOKEN_EXP
@@ -47,32 +54,26 @@ axios.interceptors.request.use(
        */
       if ( !isRefreshing ) {
     
-        // 打开开关
+        // 打开状态
         isRefreshing = true;
 
         // 获取新的token
         const NEW_TOKEN: string = await refreshToken();
-        console.log('NEW_TOKEN', NEW_TOKEN);
-        
 
-        // 关闭开关，允许下次继续刷新
-        isRefreshing = false;
-
-        // 如果新的token存在，则更新token为刷新后的
+        // 如果新的token存在，用新token继续之前的请求，然后重置队列
         if ( NEW_TOKEN ) {
-
-          // 更新新token
           config.headers['Authorization'] = NEW_TOKEN;
-
-          // 执行队列请求
           requests.forEach( (callback: any) => callback(config) );
-
-          // 重置队列
           requests = [];
-
+        }
+        // 否则直接清空队列，因为需要重新登录了
+        else {
+          requests = [];
         }
 
-        return config;
+        // 关闭状态，允许下次继续刷新
+        isRefreshing = false;
+
       }
 
       /** 
@@ -87,7 +88,7 @@ axios.interceptors.request.use(
       return retryOriginalRequest;
     }
 
-    return config;
+    return Promise.resolve(config);
   }
 
 );

@@ -155,7 +155,7 @@ export default defineComponent({
   background-color lighten($color-desc, 75%)
   border-radius $radius
   padding $margin
-  margin ($margin *2) auto
+  margin ($margin *2) auto $margin
   .line
     margin-bottom $margin
     &:last-child

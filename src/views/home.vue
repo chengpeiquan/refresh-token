@@ -1,30 +1,36 @@
 <template>
   <LoginInfo />
-
-  <p>啊啊啊啊</p>
+  <UsageTips />
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import LoginInfo from '@cp/LoginInfo.vue'
+import UsageTips from '@cp/UsageTips.vue'
 import axios from '@libs/axios'
 
 export default defineComponent({
   components: {
-    LoginInfo
+    LoginInfo,
+    UsageTips
   },
   setup () {
-
-    
-
-    return {
+    const request = (): void => {
+      for ( let i = 0; i < 4; i++ ) {
+        axios({
+          method: 'get',
+          url: '/test'
+        })
+      }
     }
+    
+    onMounted( () => {
+      request();
+    })
   }
 })
 </script>
 
 <style lang="stylus" scoped>
-@import "~@styl/config"
-
 </style>

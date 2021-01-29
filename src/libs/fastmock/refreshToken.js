@@ -4,7 +4,6 @@
  */
 
 ({_req, Mock}) => {
-  const headers = _req.headers;
   const body = _req.body;
 
   const refreshToken = body.refreshToken || '';
@@ -16,8 +15,8 @@
     }
   }
 
-  const expTime = headers.expiredtime || 0;
-  if ( !expTime ) {
+  const isAllowRefresh = Mock.mock('@boolean');
+  if ( !isAllowRefresh ) {
     return {
       code: 1,
       data: null,
@@ -31,9 +30,8 @@
       tokenType: 'Bearer',
       accessToken: '@guid',
       refreshToken: '@guid',
-      expiresTime: () => Date.now() + 20 * 1000
+      expiresTime: () => Date.now() + 10 * 1000
     },
     msg: '续期成功'
   })
-
 }

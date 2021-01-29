@@ -18,12 +18,6 @@ import '@styl/global.styl'
 
 
 /** 
- * 引入本地库
- */
-// import '@libs/mock'
-
-
-/** 
  * 初始化项目
  */
 createApp(App)

@@ -6,20 +6,16 @@
       :key="key"
     />
   </main>
-
-  <Footer />
 </template>
 
 <script lang="ts">
 import { defineComponent, ComputedRef, computed } from 'vue'
 import Header from '@cp/Header.vue'
-import Footer from '@cp/Footer.vue'
 import { useRoute } from 'vue-router';
 
 export default defineComponent({
   components: {
-    Header,
-    Footer
+    Header
   },
   setup () {
     const route = useRoute();

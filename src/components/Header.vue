@@ -6,6 +6,8 @@
         <router-link class="item" to="/home" exact>Home</router-link>
         <span class="divider"></span>
         <router-link class="item" to="/list">List</router-link>
+        <span class="divider"></span>
+        <router-link class="item" to="/about">About</router-link>
       </nav>
       <!-- 左侧 -->
 
@@ -54,6 +56,8 @@ export default defineComponent({
         id: 0,
         name: ''
       };
+      console.log(USER_INFO);
+      
       name.value = USER_INFO.name;
     }
 
