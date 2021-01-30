@@ -2,13 +2,13 @@
 
 如今在涉及到用户登录的系统设计里面，基本上都是通过 OAuth 2.0 来设计授权，当你在调用登录接口的时候，可以看到在返回来的数据里面会有 2 个 Token：一个 `accessToken` 和一个 `refreshToken` 。
 
-为什么会有两个 Token，之间有什么区别？前端在开发的时候需要注意什么事情？
+为什么会有两个 Token，之间有什么区别？这其实是 [OAuth 2.0 的四种方式](http://www.ruanyifeng.com/blog/2019/04/oauth-grant-types.html) 之一的 “凭证式”，一个是平时请求接口时的用户凭证，一个是用来刷新用户凭证的刷新凭证。
 
-这其实是我最近在业务上涉及到的一处开发需求点，因为之前的老业务，服务端都没有按照这样的模式去做，单纯的过期就让用户重新登录，所以自己也没有实际去处理过 Token 续期的场景，颇觉有趣，把第一次的开发经验记录起来。
+这也是我最近在业务上涉及到的一处开发需求点，之前的老业务，服务端都没有按照这样的模式去做，单纯的过期就让用户重新登录，所以自己也没有实际去处理过 Token 续期的场景。
+
+一波处理下来，刚开始下手觉得有点繁琐，但实现起来还是蛮简单的，过程颇觉有趣，把第一次的开发经验记录起来。
 
 ## 需求背景
-
-这其实是 [OAuth 2.0 的四种方式](http://www.ruanyifeng.com/blog/2019/04/oauth-grant-types.html) 之一的 “凭证式”。
 
 通常来说下发的 `accessToken` 都有一个比较短暂的有效期，大部分情况下可能只有大半天，短的话更可能只有 2 ~ 3 小时（对，我处理的这个业务就是……），意味着用户在一天之内可能需要频繁进行重新登录。
 
@@ -31,6 +31,8 @@
 2. 在刷新 Token 成功之前，不允许重复刷新（因为一个页面可能有多个请求），多次未完成的请求需要挂起
 
 3. 当 `refreshToken` 也过期时（也就是刷新失败），停止重复刷新，引导用户重新登录
+
+Btw: 后面的 Token 统一都是指 `accessToken` 。
 
 ## 实现思路
 
@@ -71,21 +73,58 @@ setLoginInfoToLocal.ts|存储登录信息到本地，在调用登录接口和刷
 
 点击查看： [libs - refresh-token](https://github.com/chengpeiquan/refresh-token/tree/main/src/libs)
 
-下面把几个主要文件里面，主要的代码部分讲一下
+下面把几个主要文件里面，主要的代码部分讲一下：
+
+### config.ts
+
+之所以要抽离出 config ，是因为之前遇到一个坑，axios 如果先 create 再 export，那么用到的地方其实都是同一个实例，不同的模块里引用了同一个实例然后还要再做一些拦截，会相互覆盖。
+
+所以如果你在其他地方，可能要用到一个干净的新实例的时候，抽离出 config 可以单独 create ，可以减少你重复编写代码的情况。
+
+你在这里可以动态指定接口路径、默认的请求头、超时时间等等。
+
+```ts
+const config: any = {
+
+  // 接口路径
+  baseURL: IS_DEV ? 'http://127.0.0.1:12321/api' : 'https://www.fastmock.site/mock/1c85c0d436ae044cf22849549ef471b8/api',
+
+  // 公共请求头
+  headers: {
+    'Content-Type': 'application/json; charset=UTF-8',
+    Authorization: 'Basic KJytrqad8765Fia'
+  },
+
+  // 默认的响应方式
+  responseType: 'json',
+
+  // 超时时间
+  timeout: 30000, 
+
+  // 跨域的情况下不需要带上cookie
+  withCredentials: false,
+
+  // 调整响应范围，范围内的可以进入then流程，否则会走catch
+  validateStatus: (status: number) => {
+    return status >= 200 && status < 500;
+  }
+
+}
+```
+
+完整代码：[config.ts - refresh-token](https://github.com/chengpeiquan/refresh-token/blob/main/src/libs/axios/config.ts)
+
+官方文档：[请求配置 - axios](http://www.axios-js.com/zh-cn/docs/#%E8%AF%B7%E6%B1%82%E9%85%8D%E7%BD%AE)
 
 ### instance.ts
 
-这里把主要的部分讲一下，之所以要抽离出 config ，然后再单独通过 create 创建一个新的实例，是因为之前遇到一个坑，axios 如果先 create 再 export，那么用到的地方其实都是同一个实例，如果你在其他地方可能要用到一个干净的新实例，抽离出 config 可以减少你重复编写代码的情况。
+单独封装的 `instance`，是一个 “干净” 的实例，它里面包含的只是全局都会用到的一些请求拦截和返回拦截。
+
+**请求拦截：**
+
+比如在开始请求之前，给每个请求头都带上 Token 等等。
 
 ```ts
-// 通过create创建一个新的实例
-const instance = axios.create(config);
-```
-
-/** 
- * 请求拦截
- * 添加一些全局要带上的东西
- */
 instance.interceptors.request.use(
 
   // 正常拦截
@@ -105,11 +144,13 @@ instance.interceptors.request.use(
   err => Promise.reject(err)
 
 );
+```
 
-/** 
- * 返回拦截
- * 在这里解决数据返回的异常问题
- */
+**返回拦截：**
+
+比如拦截掉一些特殊的返回情况，还可以简化接口返回的数据等等。
+
+```ts
 instance.interceptors.response.use(
 
   // 正常响应

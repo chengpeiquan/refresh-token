@@ -25,7 +25,7 @@ const config: any = {
 
   // 调整响应范围，范围内的可以进入then流程，否则会走catch
   validateStatus: (status: number) => {
-    return status >= 200 && status <= 600;
+    return status >= 200 && status < 500;
   }
 
 }
