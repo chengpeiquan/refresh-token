@@ -56,7 +56,6 @@ export default defineComponent({
         id: 0,
         name: ''
       };
-      console.log(USER_INFO);
       
       name.value = USER_INFO.name;
     }

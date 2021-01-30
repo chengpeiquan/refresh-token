@@ -4,7 +4,7 @@ const resolve = dir => path.join(__dirname, dir);
 const IS_DEV = process.env.NODE_ENV === 'development' ? true : false;
 
 module.exports = {
-  publicPath: IS_DEV ? '/' : '/',
+  publicPath: IS_DEV ? '/' : './',
   assetsDir: 'static',
   productionSourceMap: false,
   lintOnSave: false,

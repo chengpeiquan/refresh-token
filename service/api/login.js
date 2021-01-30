@@ -6,6 +6,17 @@ const Mock = require('mockjs');
 module.exports = (app) => {
   app.post('/api/login', (req, res) => {
 
+    const headers = req.headers;
+    const token = headers.authorization
+    if ( token !== 'Basic KJytrqad8765Fia' ) {
+      res.status(403).send({
+        code: 1,
+        data: null,
+        msg: '非法请求'
+      });
+      return false;
+    }
+
     const body = req.body;
     if ( body.name !== 'admin' || body.password !== '123456' ) {
       res.status(403).send({
