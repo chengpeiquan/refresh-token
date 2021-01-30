@@ -76,6 +76,11 @@ export default defineComponent({
         return false;
       }
 
+      if ( !form.password ) {
+        message.warning('密码不能为空');
+        return false;
+      }
+
       isSending.value = true;
 
       axios({
@@ -97,6 +102,10 @@ export default defineComponent({
         // 把登录信息存起来
         const DATA: any = data.data;
         setLoginInfoToLocal(DATA);
+
+        // 更新导航栏用户名
+        const USER_NAME: string = DATA.userInfo.name || '';
+        bus.emit('updateUserName', USER_NAME);
 
         // 返回首页
         message.success(MSG, 1, () => {
@@ -139,7 +148,7 @@ export default defineComponent({
   display flex
   flex-direction column
   width 350px
-  margin ($margin *2) auto
+  margin auto
   >>> .ant-input-prefix
     color $color-desc
 </style>

@@ -2,11 +2,11 @@ import axios from '@libs/axios/instance'
 import ls from '@libs/localStorage'
 import refreshToken from '@libs/refreshToken'
 
-/** 
- * 防止重复刷新的开关
- */
+// 防止重复刷新的状态开关
 let isRefreshing: boolean = false;
-let requests: any = [];
+
+// 被拦截的请求列表
+let requests: any[] = [];
 
 /** 
  * 请求拦截
@@ -15,26 +15,28 @@ let requests: any = [];
  */
 axios.interceptors.request.use(
 
-  // 正常拦截
-  async (config: any): Promise<any> =>{
+  async config => {
 
     /** 
      * 刷新token
      */
-    const HAS_LOCAL_TOKEN: boolean = ls.get('token') ? true : false;
-    const HAS_LOCAL_TOKEN_EXP: boolean = ls.get('token_expired_timestamp') ? true : false;
 
-    // 获取旧token过期时间戳
+    // 计算token的剩余有效时间
     const OLD_TOKEN_EXP: number = ls.get('token_expired_timestamp') || 0;
-
-    // 获取当前时间戳
     const NOW_TIMESTAMP: number = Date.now();
-
-    // 计算有效的剩余时间差
     const TIME_DIFF: number = OLD_TOKEN_EXP - NOW_TIMESTAMP;
 
-    // 请求时认为需要刷新、有本地token记录、有过期时间记录，并且允许刷新，四者缺一不可
+    // 判断本地是否有记录
+    const HAS_LOCAL_TOKEN: boolean = ls.get('token') ? true : false;
+    const HAS_LOCAL_TOKEN_EXP: boolean = OLD_TOKEN_EXP ? true : false;
+
+    // 获取接口url
+    const API_URL: string = config.url || '';
+
+    // 非刷新请求、有本地记录、已过期，同时满足，才会进入刷新流程
     if (
+      API_URL !== '/refreshToken'
+      &&
       HAS_LOCAL_TOKEN
       &&
       HAS_LOCAL_TOKEN_EXP
@@ -42,52 +44,41 @@ axios.interceptors.request.use(
       TIME_DIFF <= 0
     ) {
 
-      /** 
-       * 如果没有在刷新，则允许刷新
-       */
+      // 如果没有在刷新，则执行刷新
       if ( !isRefreshing ) {
     
-        // 打开开关
+        // 打开状态
         isRefreshing = true;
 
         // 获取新的token
         const NEW_TOKEN: string = await refreshToken();
-        console.log('NEW_TOKEN', NEW_TOKEN);
-        
 
-        // 关闭开关，允许下次继续刷新
-        isRefreshing = false;
-
-        // 如果新的token存在，则更新token为刷新后的
+        // 如果新的token存在，用新token继续之前的请求，然后重置队列
         if ( NEW_TOKEN ) {
-
-          // 更新新token
           config.headers['Authorization'] = NEW_TOKEN;
-
-          // 执行队列请求
           requests.forEach( (callback: any) => callback(config) );
-
-          // 重置队列
           requests = [];
-
+        }
+        // 否则直接清空队列，因为需要重新登录了
+        else {
+          requests = [];
         }
 
-        return config;
+        // 关闭状态，允许下次继续刷新
+        isRefreshing = false;
+
       }
 
-      /** 
-       * 之前的请求都存储为队列
-       */
-      const retryOriginalRequest: any = new Promise( (resolve: any) => {
+      // 并把刷新完成之前的请求都存储为请求队列
+      return new Promise( (resolve: any) => {
         requests.push( () => {
           resolve(config)
         });
       });
 
-      return retryOriginalRequest;
     }
 
-    return config;
+    return Promise.resolve(config);
   }
 
 );

@@ -1,6 +1,7 @@
 import axios from 'axios'
 import config from '@libs/axios/config'
 import ls from '@libs/localStorage'
+import message from '@libs/message'
 import router from '@/router'
 
 /** 
@@ -11,39 +12,25 @@ const instance = axios.create(config);
 
 /** 
  * 请求拦截
- * 要判断开发环境决定是否添加代理path
+ * 添加一些全局要带上的东西
  */
 instance.interceptors.request.use(
 
   // 正常拦截
-  (config: any): any =>{
-
-    /** 
-     * Token的有效期
-     * 因为是Mock接口，没法判断token有效期，所以要带上时间戳去判断一下
-     */
-    const LOCAL_TOKEN_EXP: number = ls.get('token_expired_timestamp') || 0;
-    if ( LOCAL_TOKEN_EXP ) {
-      config.headers['expiredTime'] = LOCAL_TOKEN_EXP;
-    }
+  config => {
     
-    /** 
-     * 定义token
-     * 除非免token的接口，否则登录后都要返回带身份token的请求头
-     */
+    // 添加token
     const LOCAL_TOKEN: string = ls.get('token') || '';
     if ( LOCAL_TOKEN ) {
       config.headers['Authorization'] = LOCAL_TOKEN;
     }
 
-    /** 
-     * 返回处理后的配置
-     */
-    return config;
+    // 返回处理后的配置
+    return Promise.resolve(config);
   },
   
   // 拦截失败
-  (err: any): any => Promise.reject(err)
+  err => Promise.reject(err)
 
 );
 
@@ -54,12 +41,9 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
 
   // 正常响应
-  (res: any): any => {
+  res => {
 
-    /** 
-     * 处理axios在低版本IE下的坑爹问题
-     * 主要针对IE 8-9
-     */
+    // 处理axios在IE 8-9下的坑爹问题
     if (
       res.data === null
       &&
@@ -77,12 +61,13 @@ instance.interceptors.response.use(
 
     }
 
-    /** 
-     * 登录失效拦截
-     * 虽然在请求前有通过refreshToken去延长有效期，但它也有失效的时候…
-     */
+    // 登录失效拦截（主要针对refreshToken也失效的情况）
     if ( res.data.code === 1 && res.data.msg === '用户凭证已过期' ) {
+      
+      // 告知用户
+      message.error(res.data.msg);
 
+      // 切去登录
       try {
         router.push({
           name: 'login'
@@ -94,16 +79,12 @@ instance.interceptors.response.use(
 
     }
 
-    /** 
-     * 提取接口的返回结果
-     * 简化接口调用的编码操作
-     */
-    return res.data;
-
+    // 提取接口的返回结果，简化接口调用的编码操作
+    return Promise.resolve(res.data);
   },
 
   // 异常响应（统一返回一个msg提示即可）
-  (err: any): Promise<string> => Promise.reject('网络异常')
+  err => Promise.reject('网络异常')
 
 );
 

@@ -6,6 +6,8 @@
         <router-link class="item" to="/home" exact>Home</router-link>
         <span class="divider"></span>
         <router-link class="item" to="/list">List</router-link>
+        <span class="divider"></span>
+        <router-link class="item" to="/about">About</router-link>
       </nav>
       <!-- 左侧 -->
 
@@ -54,6 +56,7 @@ export default defineComponent({
         id: 0,
         name: ''
       };
+      
       name.value = USER_INFO.name;
     }
 
@@ -89,7 +92,6 @@ export default defineComponent({
     display flex
     width 100%
     max-width $width-container
-    height @height
     justify-content space-between
     align-items center
     padding 0 $margin
@@ -99,13 +101,12 @@ export default defineComponent({
       justify-content flex-start
       align-items center
       flex 1
-      height 100%
       .item
         display flex
-        align-items center
-        height 100%
-        padding 0 $margin
+        font-size 14px
         &.cur
+          font-size 16px
+          font-weight bold
           text-decoration underline
       .divider
         display flex

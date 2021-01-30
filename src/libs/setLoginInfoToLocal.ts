@@ -21,6 +21,12 @@ const setLoginInfoToLocal = (data: any): void => {
   const EXPIRED_TIME: number = data.expiresTime;
   ls.set('token_expired_timestamp', EXPIRED_TIME);
 
+  // 更新本地存储的用户信息
+  if ( data.userInfo ) {
+    const USER_INFO: UserInfo = data.userInfo;
+    ls.set('user_info', USER_INFO);
+  }
+
   // 更新本地存储的完整登录信息
   ls.set('login_info', data);
 }

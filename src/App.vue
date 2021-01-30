@@ -1,5 +1,8 @@
 <template>
-  <Header />
+  <Header
+    v-if="route.name !== 'login'"
+  />
+
   <main class="main">
     <router-view
       :key="key"
@@ -9,8 +12,8 @@
 
 <script lang="ts">
 import { defineComponent, ComputedRef, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import Header from '@cp/Header.vue'
-import { useRoute } from 'vue-router';
 
 export default defineComponent({
   components: {
@@ -18,7 +21,7 @@ export default defineComponent({
   },
   setup () {
     const route = useRoute();
-    
+
     const key: ComputedRef<string> = computed( () => {
       const date: Date = new Date();
 
@@ -28,6 +31,7 @@ export default defineComponent({
     });
 
     return {
+      route,
       key
     }
   }
@@ -39,4 +43,5 @@ export default defineComponent({
   position relative
   display flex
   flex 1
+  flex-direction column
 </style>
