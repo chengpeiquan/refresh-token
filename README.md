@@ -50,7 +50,7 @@ expiresTime|Token 的过期时间
 
 以 Vue + Axios 来搭一个演示项目为例，核心代码相关的文件是这几个：
 
-```js
+```html
 src
 └─libs
   ├─axios
@@ -87,7 +87,11 @@ setLoginInfoToLocal.ts|存储登录信息到本地，在调用登录接口和刷
 const config: any = {
 
   // 接口路径
-  baseURL: IS_DEV ? 'http://127.0.0.1:12321/api' : 'https://www.fastmock.site/mock/1c85c0d436ae044cf22849549ef471b8/api',
+  baseURL: IS_DEV 
+    ?
+    'http://127.0.0.1:12321/api'
+    :
+    'https://www.fastmock.site/mock/1c85c0d436ae044cf22849549ef471b8/api',
 
   // 公共请求头
   headers: {
@@ -361,11 +365,11 @@ const refreshToken = (): Promise<any> => {
 
 ## 项目演示
 
-本仓库就是一个项目源码，这里提供了两种类型的 Mock 接口：
+这篇文章对应的仓库就是一个项目源码，这里提供了两种类型的 Mock 接口：
 
 ### 本地 Express Server
 
-推荐用这个方式，可以一遍测试效果，一遍看代码。
+推荐用这个方式，可以一边测试效果，一边看代码。
 
 1. 先通过 `git clone https://github.com/chengpeiquan/refresh-token.git` 克隆本仓库到本地
 
@@ -375,13 +379,41 @@ const refreshToken = (): Promise<any> => {
 
 4. 另外打开一个控制台访问项目，输入 `npm run serve` 启动项目调试
 
+你可以在 `service` 文件夹里修改接口的一些返回数据，比如 Token 的有效期（目前默认都是 5s 过期，方便测试），以及 refreshToken 的有效几率（因为无法校验刷新凭证的合法性，所以目前采用的是随机生成一个布尔值，当 `false` 的时候表示刷新凭证过期，`true` 则允许继续刷新），等等。
+
+```html
+service
+├─api
+│ ├─login.js
+│ ├─refreshToken.js
+│ └─test.js
+├─createApi.js
+└─index.js
+```
+
+这些文件的说明：
+
+文件|作用
+:--|:--
+index.js|服务的启动入口文件
+createApi.js|创建接口的文件，可以把写好的接口导进来生成
+api文件夹|里面存放的是接口文件，一个文件对应一个接口
+
 ### 远程 FastMock API
 
 原本是采用这个方式的，但是可能受自己网络或者对方服务器影响，有时候响应很慢，试过 30s 超时了还没响应回来，花费过多时间在等待上了，所以才换成了本地 Server 。
 
 线上访问：[Refresh Token Demo](https://chengpeiquan.github.io/refresh-token/)
 
+你也可以创建自己的 FastMock 接口，登录官网进行配置后，修改 `src/libs/axios/config.ts` 里的 `baseURL` 。
+
+点击访问：[FastMock 官网](https://www.fastmock.site/)
+
+点击访问：[FastMock 操作文档](https://marvengong.gitee.io/fastmock/)
+
 ## 参考资料
+
+感谢各位大神总结的相关知识点，收益很多，才有了自己的一番实践和总结，建议大家有兴趣也可以阅读一下！
 
 [理解OAuth 2.0](http://www.ruanyifeng.com/blog/2014/05/oauth_2_0.html)
 
