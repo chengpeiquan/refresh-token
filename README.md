@@ -28,7 +28,7 @@
 
 1. 当 `accessToken` 过期的时候，在发起下一次请求之前，前端先帮用户主动刷新 Token，拿到新的 Token 完成后续的请求
 
-2. 在刷新 Token 成功之前，不允许重复刷新（因为一个页面可能有多个请求），多次未完成的请求需要挂起
+2. 在刷新 Token 成功之前，不允许重复刷新（因为一个页面可能有多个请求），多个未完成的请求需要挂起
 
 3. 当 `refreshToken` 也过期时（也就是刷新失败），停止重复刷新，引导用户重新登录
 
@@ -120,9 +120,7 @@ const config: any = {
 
 单独封装的 `instance`，是一个 “干净” 的实例，它里面包含的只是全局都会用到的一些请求拦截和返回拦截。
 
-**请求拦截：**
-
-比如在开始请求之前，给每个请求头都带上 Token 等等。
+请求拦截可以在开始请求之前，添加上一些特殊数据，比如给每个请求头都带上 Token 等等。
 
 ```ts
 instance.interceptors.request.use(
@@ -146,9 +144,7 @@ instance.interceptors.request.use(
 );
 ```
 
-**返回拦截：**
-
-比如拦截掉一些特殊的返回情况，还可以简化接口返回的数据等等。
+返回拦截可以拦截掉一些特殊的返回情况，还可以简化接口返回的数据等等。
 
 ```ts
 instance.interceptors.response.use(
@@ -203,6 +199,67 @@ instance.interceptors.response.use(
 
 export default instance;
 ```
+
+完整代码：[instance.ts - refresh-token](https://github.com/chengpeiquan/refresh-token/blob/main/src/libs/axios/instance.ts)
+
+### index.ts
+
+其实和 `instance.ts` 的性质差不多，本质上也是要在这里做一些拦截，但是不同于 `instance` 的地方在于，入口文件更多的是侧重于业务侧的拦截。
+
+比如前面有说到，登录接口和刷新接口是不需要校验用户凭证的，也就是不必每个接口都需要进行 Token 刷新，那么这些只针对部分业务接口的拦截，就统一放到 `index` 这边。
+
+我们的刷新操作也是在这里完成的。
+
+我们前面说到，在拦截的时候，要做到不允许重复刷新，同时多个未完成的请求需要挂起，所以我们需要定义两个全局变量。
+
+```ts
+// 防止重复刷新的状态开关
+let isRefreshing: boolean = false;
+
+// 被拦截的请求列表
+let requests: any[] = [];
+```
+
+前端主动发起刷新的判断标准，就是看本地记录的时间是否到期，所以要先检测本地是否存在时间记录，计算时间差：
+
+```ts
+// 读取Token的过期时间戳
+const OLD_TOKEN_EXP: number = ls.get('token_expired_timestamp') || 0;
+
+// 获取当前的时间戳
+const NOW_TIMESTAMP: number = Date.now();
+
+// 计算剩余时间
+const TIME_DIFF: number = OLD_TOKEN_EXP - NOW_TIMESTAMP;
+```
+
+同时还要检查是否具备主动发起刷新的条件，必须本地存在旧的记录，才会去帮用户刷新。
+
+```ts
+// 是否有Token存储记录
+const HAS_LOCAL_TOKEN: boolean = ls.get('token') ? true : false;
+
+// 是否有Token过期时间记录
+const HAS_LOCAL_TOKEN_EXP: boolean = OLD_TOKEN_EXP ? true : false;
+```
+
+然后因为像刷新请求这个请求不应该触发刷新，所以我们要把刷新操作都放到综合条件里面去，满足所有条件的，才去执行刷新。
+
+```ts
+if (
+  API_URL !== '/refreshToken'
+  &&
+  HAS_LOCAL_TOKEN
+  &&
+  HAS_LOCAL_TOKEN_EXP
+  &&
+  TIME_DIFF <= 0
+) {
+  // ...
+}
+```
+
+完整代码：[index.ts - refresh-token](https://github.com/chengpeiquan/refresh-token/blob/main/src/libs/axios/index.ts)
 
 ## 项目演示
 
