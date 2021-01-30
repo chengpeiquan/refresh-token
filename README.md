@@ -268,9 +268,7 @@ if (
 
 开始刷新的时候，为了避免重复刷新，只有未刷新时，才会进入刷新流程，同时进入后需要先把状态打开。
 
-然后获取新的 Token，拿到新的 Token 之后，再把原来挂起的请求执行掉。
-
-然后重置队列，避免队列越来越多，下次刷新时造成无畏的重复请求。
+然后获取新的 Token，拿到新的 Token 之后，再把原来挂起的请求执行掉，在这里记得重置队列，避免队列越来越多，下次刷新时造成无畏的重复请求。
 
 ```ts
 // 如果没有在刷新，则执行刷新
@@ -299,7 +297,7 @@ if ( !isRefreshing ) {
 }
 ```
 
-配合上一步，我们需要把刷新 Token 成功之前的请求都挂起来，`Promise` 只有当 `resolve` 或者 `reject` 的时候才会返回结果，所以我们在 `Promise` 里，把请求都先丢到 `requests` 数组里存起来，就能达到请求挂起的目的。
+配合上一步，我们需要把刷新 Token 成功之前的请求都挂起来，因为 `Promise` 只有当 `resolve` 或者 `reject` 的时候才会返回结果，所以我们在 `Promise` 里，把请求都先丢到 `requests` 数组里存起来，就能达到请求挂起的目的。
 
 ```ts
 // 并把刷新完成之前的请求都存储为请求队列
@@ -311,6 +309,55 @@ return new Promise( (resolve: any) => {
 ```
 
 完整代码：[index.ts - refresh-token](https://github.com/chengpeiquan/refresh-token/blob/main/src/libs/axios/index.ts)
+
+### refreshToken.ts
+
+在 `index` 里有一个操作是拿到刷新后的 Token：
+
+```ts
+// 获取新的token
+const NEW_TOKEN: string = await refreshToken();
+```
+
+这里其实是一个接口请求操作，就是通过登录时给的 `refreshToken` ，去请求刷新凭证的接口签发新的 `accessToken` 下来。
+
+为了减少代码的回调，方便 `index` 采用 `async / await`，所以这里需要返回一个 `Promise`，当刷新成功时，返回新的 Token 字符串，刷新失败则返回空的字符串。
+
+```ts
+const refreshToken = (): Promise<any> => {
+  return new Promise( resolve => {
+    
+    // 获取本地记录的刷新凭证
+    const REFRESH_TOKEN: string = ls.get('refresh_token') || '';
+
+    // 请求刷新
+    axios({
+      method: 'post',
+      url: '/refreshToken',
+      data: {
+        refreshToken: REFRESH_TOKEN
+      }
+    }).then( (data: any) => {
+      
+      // 存储token信息
+      const DATA: any = data.data;
+      setLoginInfoToLocal(DATA);
+
+      // 返回新的token，通知那边搞定了
+      const NEW_TOKEN: string = `${DATA.tokenType} ${DATA.accessToken}`;
+      resolve(NEW_TOKEN);
+
+    }).catch( (msg: string) => {
+      resolve('');
+    });
+    
+  });
+}
+```
+
+在这里，刷新完毕后，记得同时把新的资料存储到本地去，更新上次登录记录的那些数据，所以我才要把 `setLoginInfoToLocal` 的操作抽离出来，减少重复代码的编写。
+
+完整代码：[refreshToken.ts - refresh-token](https://github.com/chengpeiquan/refresh-token/blob/main/src/libs/refreshToken.ts)
 
 ## 项目演示
 
