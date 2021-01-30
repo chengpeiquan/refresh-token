@@ -243,7 +243,14 @@ const HAS_LOCAL_TOKEN: boolean = ls.get('token') ? true : false;
 const HAS_LOCAL_TOKEN_EXP: boolean = OLD_TOKEN_EXP ? true : false;
 ```
 
-然后因为像刷新请求这个请求不应该触发刷新，所以我们要把刷新操作都放到综合条件里面去，满足所有条件的，才去执行刷新。
+然后因为像刷新请求这个请求不应该触发刷新，所以再获取一下接口的 URL：
+
+```ts
+// 获取接口url
+const API_URL: string = config.url || '';
+```
+
+最后，我们要把刷新操作都放到综合条件里面去，满足所有条件的，才去执行刷新。
 
 ```ts
 if (
@@ -255,8 +262,52 @@ if (
   &&
   TIME_DIFF <= 0
 ) {
-  // ...
+  // 这里面是刷新的操作...
 }
+```
+
+开始刷新的时候，为了避免重复刷新，只有未刷新时，才会进入刷新流程，同时进入后需要先把状态打开。
+
+然后获取新的 Token，拿到新的 Token 之后，再把原来挂起的请求执行掉。
+
+然后重置队列，避免队列越来越多，下次刷新时造成无畏的重复请求。
+
+```ts
+// 如果没有在刷新，则执行刷新
+if ( !isRefreshing ) {
+
+  // 打开状态
+  isRefreshing = true;
+
+  // 获取新的token
+  const NEW_TOKEN: string = await refreshToken();
+
+  // 如果新的token存在，用新token继续之前的请求，然后重置队列
+  if ( NEW_TOKEN ) {
+    config.headers['Authorization'] = NEW_TOKEN;
+    requests.forEach( (callback: any) => callback(config) );
+    requests = [];
+  }
+  // 否则直接清空队列，因为需要重新登录了
+  else {
+    requests = [];
+  }
+
+  // 关闭状态，允许下次继续刷新
+  isRefreshing = false;
+
+}
+```
+
+配合上一步，我们需要把刷新 Token 成功之前的请求都挂起来，`Promise` 只有当 `resolve` 或者 `reject` 的时候才会返回结果，所以我们在 `Promise` 里，把请求都先丢到 `requests` 数组里存起来，就能达到请求挂起的目的。
+
+```ts
+// 并把刷新完成之前的请求都存储为请求队列
+return new Promise( (resolve: any) => {
+  requests.push( () => {
+    resolve(config)
+  });
+});
 ```
 
 完整代码：[index.ts - refresh-token](https://github.com/chengpeiquan/refresh-token/blob/main/src/libs/axios/index.ts)
